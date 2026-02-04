@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    @page { size: A4; margin: 10mm }
+    
+    * { box-sizing: border-box }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      font-size: 10pt;
+      color: #2c3e50;
+      margin: 0;
+      background: #fff;
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 10mm;
+      background: #fff;
+    }
+
+    /* Two-column layout */
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 24px;
+      border-radius: 8px;
+      height: fit-content;
+    }
+
+    .sidebar h3 {
+      font-size: 11.5pt;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .sidebar h3:not(:first-of-type) {
+      margin-top: 20px;
+    }
+
+    /* Contact Info */
+    .contact-info { margin-bottom: 20px }
+    .contact-item {
+      margin-bottom: 10px;
+      font-size: 9.5pt;
+      word-break: break-word;
+    }
+    .contact-label {
+      display: block;
+      font-weight: 600;
+      font-size: 9pt;
+      opacity: 0.85;
+      margin-bottom: 2px;
+    }
+
+    /* Skills sidebar */
+    .sidebar-skill {
+      margin-bottom: 12px;
+      font-size: 9.5pt;
+      line-height: 1.4;
+    }
+
+    .sidebar-skill strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    /* Main content */
+    .main-content h1 {
+      font-size: 32pt;
+      margin: 0 0 8px 0;
+      font-weight: 900;
+      color: #2c3e50;
+      letter-spacing: -0.5px;
+    }
+
+    .job-title {
+      font-size: 13pt;
+      color: #667eea;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      letter-spacing: 0.3px;
+    }
+
+    .address {
+      font-size: 9.5pt;
+      color: #7f8c8d;
+      margin-bottom: 16px;
+    }
+
+    /* Divider */
+    .divider {
+      height: 3px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      margin: 16px 0 20px 0;
+      border-radius: 2px;
+    }
+
+    /* Section titles */
+    .section-title {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #2c3e50;
+      margin: 0 0 14px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #667eea;
+      display: inline-block;
+    }
+
+    /* About section */
+    .about-section {
+      margin-bottom: 20px;
+      font-size: 9.8pt;
+      line-height: 1.6;
+      color: #34495e;
+    }
+
+    /* Experience section */
+    .experience-section { margin-bottom: 20px }
+    
+    .job-card {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-left: 3px solid #667eea;
+      border-radius: 4px;
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+
+    .job-header h4 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    .job-header .company {
+      display: block;
+      font-size: 9pt;
+      color: #667eea;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .job-period {
+      font-size: 9pt;
+      color: #7f8c8d;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .job-description {
+      font-size: 9pt;
+      line-height: 1.5;
+    }
+
+    .job-description ul {
+      margin: 8px 0 0 0;
+      padding-left: 16px;
+      line-height: 1.5;
+    }
+
+    .job-description li {
+      margin-bottom: 5px;
+      color: #34495e;
+    }
+
+    /* Education section */
+    .education-item {
+      margin-bottom: 14px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .education-item strong {
+      display: block;
+      color: #2c3e50;
+      font-size: 10pt;
+      margin-bottom: 4px;
+    }
+
+    .education-item .degree {
+      font-size: 9pt;
+      color: #667eea;
+      margin-bottom: 4px;
+    }
+
+    .education-item .period {
+      font-size: 9pt;
+      color: #7f8c8d;
+    }
+
+    /* Skills in sidebar */
+    .skill-category {
+      margin-bottom: 14px;
+    }
+
+    .skill-category-title {
+      font-weight: 700;
+      font-size: 9pt;
+      margin-bottom: 6px;
+      opacity: 0.9;
+    }
+
+    .skill-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 3px 8px;
+      margin: 2px 4px 2px 0;
+      border-radius: 12px;
+      font-size: 8.5pt;
+      font-weight: 500;
+    }
+
+    /* Highlights */
+    .highlight {
+      background: linear-gradient(120deg, #667eea15 0%, #764ba215 100%);
+      padding: 14px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 9pt;
+      line-height: 1.6;
+      color: #2c3e50;
+    }
+
+    .highlight strong {
+      color: #667eea;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 8.5pt;
+      color: #95a5a6;
+      margin-top: 20px;
+      padding-top: 12px;
+      border-top: 1px solid #ecf0f1;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        height: auto;
+      }
+    }
+
+    @media print {
+      body { margin: 0; padding: 0 }
+      .wrap { padding: 8mm }
+      .container { gap: 16px }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="container">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <!-- Contact -->
+        <div>
+          <h3>Контакты</h3>
+          <div class="contact-info">
+            
+            <div class="contact-item">
+              <span class="contact-label">Email</span>
+              cenergiy408@gmail.com
+            </div>
+            
+            
+            <div class="contact-item">
+              <span class="contact-label">Локация</span>
+              Владивосток, Россия
+            </div>
+            
+            
+            <div class="contact-item">
+              <span class="contact-label">Telegram</span>
+              @ignatov_110104
+            </div>
+            
+          </div>
+        </div>
+
+        <!-- Skills -->
+        
+        <div>
+          <h3>Навыки</h3>
+          <div class="skill-category">
+            
+              
+                <span class="skill-tag">Frontend разработка</span>
+              
+            
+              
+                <span class="skill-tag">React экосистема</span>
+              
+            
+              
+                <span class="skill-tag">Стилизация и UI</span>
+              
+            
+              
+                <span class="skill-tag">Управление состоянием</span>
+              
+            
+              
+                <span class="skill-tag">Работа с данными</span>
+              
+            
+              
+                <span class="skill-tag">Формы и валидация</span>
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+          </div>
+        </div>
+        
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- Header -->
+        <h1>Игнатов Сергей Николаевич</h1>
+        <div class="job-title">Senior Frontend Engineer</div>
+        <div class="address">📍 Владивосток, Россия</div>
+        <div class="divider"></div>
+
+        <!-- About/Summary -->
+        
+        <div class="highlight">
+          <strong>Профессиональный профиль</strong><br>
+          
+            Senior Frontend Engineer с более чем 10 годами коммерческой разработки интерфейсов для сложных цифровых продуктов, включая Web3 и браузерные сценарии с компьютерным зрением. Специализируюсь на React и TypeScript, архитектуре frontend приложений, real time взаимодействиях и производительности в услов...
+          
+        </div>
+        
+
+        <!-- Experience -->
+        
+        <div class="experience-section">
+          <h2 class="section-title">Опыт работы</h2>
+          
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <h4>Senior Frontend Engineer</h4>
+                <span class="company">Smarter Holdings International Ltd</span>
+              </div>
+              <div class="job-period">Июнь 2021 – Ноябрь 2025</div>
+            </div>
+            <div class="job-description">
+              <ul>
+                
+                  <li>Проектировал и реализовывал frontend архитектуру для Web3 и identity-продуктов с высокой нагрузкой.</li>
+                
+                  <li>Реализовал интерфейсы для KYC, электронных подписей и платежных сценариев с акцентом на безопасность и UX.</li>
+                
+                  <li>Интегрировал Web3 кошельки через Ethers.js, WalletConnect и Wagmi, обеспечивая стабильное взаимодействие с Ethereum и Solana.</li>
+                
+                  <li>Работал с real time интерфейсами, синхронизацией состояния и WebSocket соединениями.</li>
+                
+              </ul>
+            </div>
+          </div>
+          
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <h4>Senior Frontend Developer</h4>
+                <span class="company">ООО «Диасофт»</span>
+              </div>
+              <div class="job-period">Октябрь 2016 – Февраль 2021</div>
+            </div>
+            <div class="job-description">
+              <ul>
+                
+                  <li>Разрабатывал сложные интерфейсы для внутренних финансовых и идентификационных систем.</li>
+                
+                  <li>Использовал React и TypeScript для построения масштабируемых пользовательских сценариев.</li>
+                
+                  <li>Реализовывал формы с многоуровневой валидацией через React Hook Form и Yup.</li>
+                
+                  <li>Работал с графиками и визуализацией данных, оптимизируя отображение больших массивов.</li>
+                
+              </ul>
+            </div>
+          </div>
+          
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <h4>Frontend Developer</h4>
+                <span class="company">INSIDE 360</span>
+              </div>
+              <div class="job-period">Январь 2011 – Август 2016</div>
+            </div>
+            <div class="job-description">
+              <ul>
+                
+                  <li>Создавал пользовательские интерфейсы для продуктов с насыщенной бизнес-логикой.</li>
+                
+                  <li>Реализовывал сложные клиентские сценарии на JavaScript и ранних версиях React.</li>
+                
+                  <li>Работал с анимациями, пользовательскими событиями и состоянием интерфейса.</li>
+                
+                  <li>Оптимизировал клиентскую часть под различные устройства и браузеры.</li>
+                
+              </ul>
+            </div>
+          </div>
+          
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <h4>Web Developer</h4>
+                <span class="company">LandingDV</span>
+              </div>
+              <div class="job-period">Февраль 2003 – Август 2010</div>
+            </div>
+            <div class="job-description">
+              <ul>
+                
+                  <li>Реализовывал веб-интерфейсы под задачи бизнеса с нуля.</li>
+                
+                  <li>Самостоятельно принимал технические решения в условиях ограниченной информации.</li>
+                
+                  <li>Работал с HTML, CSS и JavaScript, закладывая основу клиентской логики.</li>
+                
+                  <li>Общался с заказчиками, используя эмоциональный интеллект и находчивость.</li>
+                
+              </ul>
+            </div>
+          </div>
+          
+        </div>
+        
+
+        <!-- Education -->
+        
+        <div>
+          <h2 class="section-title">Образование</h2>
+          
+          <div class="education-item">
+            <strong>Саратовский государственный технический университет</strong>
+            <div class="degree">Специалитет: инженер по прикладной информатике</div>
+            <div class="period">1997 - 2002</div>
+          </div>
+          
+        </div>
+        
+
+        <footer>
+          Smart Resume Design © 2026 | Optimized for PDF & Web
+        </footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

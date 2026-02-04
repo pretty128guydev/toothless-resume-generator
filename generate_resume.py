@@ -42,9 +42,9 @@ def load_json(path):
         return json.load(f)
 
 
-def render_html(data, templates_dir):
+def render_html(data, templates_dir, template_name='resume.html'):
     env = Environment(loader=FileSystemLoader(templates_dir), autoescape=select_autoescape(['html', 'xml']))
-    template = env.get_template('resume.html')
+    template = env.get_template(template_name)
     return template.render(data=data)
 
 
@@ -305,13 +305,14 @@ def main():
     parser.add_argument('input', help='Path to JSON input file')
     parser.add_argument('--output', '-o', default='resume.pdf', help='Output file path (PDF or HTML)')
     parser.add_argument('--templates', '-t', default='templates', help='Templates directory')
+    parser.add_argument('--template', default='resume.html', help='Template file name (e.g., resume_smart.html)')
     parser.add_argument('--html-only', action='store_true', help='Write HTML output instead of converting to PDF')
     parser.add_argument('--browser', '-b', help='Path to Chrome/Edge executable to use as fallback renderer')
     args = parser.parse_args()
 
     data = load_json(args.input)
 
-    html = render_html(data, args.templates)
+    html = render_html(data, args.templates, args.template)
 
     base_url = os.path.abspath(args.templates)
 
@@ -340,6 +341,7 @@ def main():
     parser.add_argument('input', help='Path to JSON input file')
     parser.add_argument('--output', '-o', default='resume.pdf', help='Output file path (PDF or HTML)')
     parser.add_argument('--templates', '-t', default='templates', help='Templates directory')
+    parser.add_argument('--template', default='resume.html', help='Template file name (e.g., resume_smart.html)')
     parser.add_argument('--html-only', action='store_true', help='Write HTML output instead of converting to PDF')
     parser.add_argument('--browser', '-b', help='Path to Chrome/Edge executable to use as fallback renderer')
     args = parser.parse_args()
@@ -347,7 +349,7 @@ def main():
     data = load_json(args.input)
 
     # render HTML
-    html = render_html(data, args.templates)
+    html = render_html(data, args.templates, args.template)
 
     base_url = os.path.abspath(args.templates)
 

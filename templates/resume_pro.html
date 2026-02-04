@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    @page { size: A4; margin: 10mm }
+    * { box-sizing: border-box }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      font-size: 10.5pt;
+      color: #1f2937;
+      margin: 0;
+      background: #ffffff;
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 10mm;
+      background: #ffffff;
+    }
+
+    /* Header */
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid #0f766e;
+      margin-bottom: 18px;
+    }
+
+    .name {
+      font-size: 30pt;
+      font-weight: 800;
+      margin: 0;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      font-size: 9.5pt;
+      justify-content: flex-end;
+    }
+
+    .contact-pill {
+      background: #f1f5f9;
+      border: 1px solid rgba(15,23,42,0.08);
+      padding: 5px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* Summary */
+    .summary {
+      background: #f8fafc;
+      border-left: 4px solid #0f766e;
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 9.8pt;
+      color: #334155;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      text-transform: uppercase;
+      font-size: 11pt;
+      font-weight: 700;
+      color: #0f766e;
+      letter-spacing: 0.7px;
+      margin: 0 0 10px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    /* Skills */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 14px;
+    }
+
+    .skill-item {
+      background: #f8fafc;
+      border: 1px solid rgba(15,23,42,0.08);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 9pt;
+      color: #334155;
+    }
+
+    /* Experience */
+    .job {
+      padding: 10px 12px;
+      border: 1px solid rgba(15,23,42,0.08);
+      border-radius: 6px;
+      margin-bottom: 12px;
+      background: #ffffff;
+    }
+
+    .job-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .job-role {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 10.5pt;
+    }
+
+    .job-company {
+      color: #0f766e;
+      font-weight: 600;
+      font-size: 9.5pt;
+    }
+
+    .job-period {
+      font-size: 9pt;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .job-list {
+      margin: 8px 0 0 18px;
+      padding: 0;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .job-list li { margin-bottom: 6px }
+
+    /* Education */
+    .edu {
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px solid rgba(15,23,42,0.08);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .edu strong { display: block; margin-bottom: 4px }
+    .edu .degree { color: #0f766e; font-size: 9pt }
+    .edu .period { color: #64748b; font-size: 9pt }
+
+    @media print {
+      .wrap { padding: 8mm }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1 class="name">{{ data['name'] }}</h1>
+      <div class="contact-row">
+        {% if data.get('email') %}
+          <span class="contact-pill">{{ data['email'] }}</span>
+        {% endif %}
+        {% if data.get('address') %}
+          <span class="contact-pill">{{ data['address'] }}</span>
+        {% endif %}
+        {% if data.get('telegram_address') %}
+          <span class="contact-pill">{{ data['telegram_address'] }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if data.get('about me') %}
+    <div class="summary">
+      {% for p in data['about me'] %}
+        <div>{{ p }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if data.get('skills') %}
+    <div class="section">
+      <h2 class="section-title">Навыки</h2>
+      <div class="skills-grid">
+        {% for s in data['skills'] %}
+          <div class="skill-item">{{ s }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if data.get('work experience') %}
+    <div class="section">
+      <h2 class="section-title">Коммерческий опыт</h2>
+      {% for job in data['work experience'] %}
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-role">{{ job['role'] }}</div>
+              <div class="job-company">{{ job['company name'] }}</div>
+            </div>
+            <div class="job-period">{{ job['period'] }}</div>
+          </div>
+          <ul class="job-list">
+            {% for exp in job.get('experience', []) %}
+              <li>{{ exp }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if data.get('education') %}
+    <div class="section">
+      <h2 class="section-title">Образование</h2>
+      {% for edu in data['education'] %}
+        <div class="edu">
+          <strong>{{ edu['institution'] }}</strong>
+          <div class="degree">{{ edu.get('degree','') }}</div>
+          <div class="period">{{ edu.get('period','') }}</div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>

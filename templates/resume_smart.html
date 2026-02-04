@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    @page { size: A4; margin: 10mm }
+    
+    * { box-sizing: border-box }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      font-size: 10pt;
+      color: #2c3e50;
+      margin: 0;
+      background: #ffffff;
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 10mm;
+      background: #ffffff;
+    }
+
+    /* Single-column layout */
+    .container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    /* Contact inline under name */
+    .contact-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      align-items: center;
+      margin: 4px 0 12px 0;
+      font-size: 9.5pt;
+    }
+
+    .contact-inline .contact-title {
+      font-weight: 700;
+      font-size: 9pt;
+      letter-spacing: 0.3px;
+      color: #4f46e5;
+    }
+
+    .contact-inline .contact-value {
+      background: #f3f4f6;
+      border: 1px solid rgba(15,23,42,0.08);
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: #374151;
+      white-space: nowrap;
+    }
+
+    /* Skills sidebar */
+    .sidebar-skill {
+      margin-bottom: 12px;
+      font-size: 9.5pt;
+      line-height: 1.4;
+    }
+
+    .sidebar-skill strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    /* Main content */
+    .main-content h1 {
+      font-size: 32pt;
+      margin: 0 0 8px 0;
+      font-weight: 900;
+      color: #1f2937;
+      letter-spacing: -0.5px;
+    }
+
+    .job-title {
+      font-size: 13pt;
+      color: #4f46e5;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      letter-spacing: 0.3px;
+    }
+
+    .address {
+      font-size: 9.5pt;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    /* Divider */
+    .divider {
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+      margin: 16px 0 20px 0;
+      border-radius: 2px;
+    }
+
+    /* Section titles */
+    .section-title {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0 0 14px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #6366f1;
+      display: inline-block;
+    }
+
+    /* About section */
+    .about-section {
+      margin-bottom: 20px;
+      font-size: 9.8pt;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    /* Experience section */
+    .experience-section { margin-bottom: 20px }
+    
+    .job-card {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f8fafc;
+      border-left: 3px solid #6366f1;
+      border-radius: 4px;
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+
+    .job-header h4 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      margin: 0;
+      color: #1f2937;
+    }
+
+    .job-header .company {
+      display: block;
+      font-size: 9pt;
+      color: #4f46e5;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .job-period {
+      font-size: 9pt;
+      color: #6b7280;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .job-description {
+      font-size: 9pt;
+      line-height: 1.5;
+    }
+
+    .job-description ul {
+      margin: 8px 0 0 0;
+      padding-left: 16px;
+      line-height: 1.5;
+    }
+
+    .job-description li {
+      margin-bottom: 5px;
+      color: #374151;
+    }
+
+    /* Education section */
+    .education-item {
+      margin-bottom: 14px;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 4px;
+      border: 1px solid rgba(15,23,42,0.08);
+    }
+
+    .education-item strong {
+      display: block;
+      color: #1f2937;
+      font-size: 10pt;
+      margin-bottom: 4px;
+    }
+
+    .education-item .degree {
+      font-size: 9pt;
+      color: #4f46e5;
+      margin-bottom: 4px;
+    }
+
+    .education-item .period {
+      font-size: 9pt;
+      color: #6b7280;
+    }
+
+    /* Skills in sidebar */
+    .skills-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .skills-item {
+      background: #f8fafc;
+      border: 1px solid rgba(15,23,42,0.08);
+      color: #374151;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 9pt;
+      line-height: 1.45;
+    }
+
+    /* Highlights */
+    .highlight {
+      background: linear-gradient(120deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%);
+      padding: 14px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 9pt;
+      line-height: 1.6;
+      color: #1f2937;
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+
+    .highlight strong {
+      color: #4f46e5;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 8.5pt;
+      color: #6b7280;
+      margin-top: 20px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(15,23,42,0.08);
+    }
+
+    .skills-section {
+      margin-bottom: 26px;
+    }
+
+    .experience-section {
+      margin-bottom: 26px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      body { margin: 0; padding: 0 }
+      .wrap { padding: 8mm }
+      .container { gap: 16px }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="container">
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- Header -->
+        <h1>{{ data['name'] }}</h1>
+        <div class="contact-inline">
+          <span class="contact-title">КОНТАКТЫ</span>
+          {% if data.get('email') %}
+          <span class="contact-value">{{ data['email'] }}</span>
+          {% endif %}
+          {% if data.get('address') %}
+          <span class="contact-value">{{ data['address'] }}</span>
+          {% endif %}
+          {% if data.get('telegram_address') %}
+          <span class="contact-value">{{ data['telegram_address'] }}</span>
+          {% endif %}
+        </div>
+        <div class="divider"></div>
+
+        <!-- About/Summary -->
+        {% if data.get('about me') %}
+        <div class="highlight">
+          <strong>Профессиональный профиль</strong><br>
+          {% for p in data['about me'][:1] %}
+            {{ p[:300] }}...
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if data.get('skills') %}
+        <div class="skills-section">
+          <h2 class="section-title">Навыки</h2>
+          <div class="skills-list">
+            {% for skill in data['skills'] %}
+              <div class="skills-item">{{ skill }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Experience -->
+        {% if data.get('work experience') %}
+        <div class="experience-section">
+          <h2 class="section-title">Опыт работы</h2>
+          {% for job in data['work experience'] %}
+          <div class="job-card">
+            <div class="job-header">
+              <div>
+                <h4>{{ job['role'] }}</h4>
+                <span class="company">{{ job['company name'] }}</span>
+              </div>
+              <div class="job-period">{{ job['period'] }}</div>
+            </div>
+            <div class="job-description">
+              <ul>
+                {% for exp in job.get('experience', []) %}
+                  <li>{{ exp }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Education -->
+        {% if data.get('education') %}
+        <div>
+          <h2 class="section-title">Образование</h2>
+          {% for edu in data['education'] %}
+          <div class="education-item">
+            <strong>{{ edu['institution'] }}</strong>
+            <div class="degree">{{ edu.get('degree', '') }}</div>
+            <div class="period">{{ edu.get('period', '') }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <footer></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
