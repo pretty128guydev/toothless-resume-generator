@@ -1,6 +1,6 @@
 # Resume Generator
 
-This tool generates a clean PDF resume from a JSON file using a Jinja2 HTML template and WeasyPrint.
+This tool generates a clean PDF resume from a JSON file using a Jinja2 HTML template and multiple PDF renderers (WeasyPrint and Playwright).
 
 Requirements
 
@@ -11,7 +11,14 @@ Requirements
 pip install -r requirements.txt
 ```
 
+If you want fully headerless PDFs on Windows, install Playwright browsers:
+
+```bash
+python -m playwright install
+```
+
 On Windows you may need additional system dependencies for WeasyPrint (cairo, pango). See WeasyPrint docs: https://weasyprint.org/docs/
+If WeasyPrint is unavailable, the script will use Playwright (if installed) or fall back to headless Chrome/Edge.
 
 Usage
 
