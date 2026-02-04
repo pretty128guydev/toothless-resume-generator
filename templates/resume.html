@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    @page { size: A4; margin: 10mm }
+    body {
+      font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+      font-size: 11pt;
+      color: #222;
+      margin: 0;
+      background: #fff;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 6mm;
+      box-sizing: border-box;
+    }
+
+    /* Header */
+    header.top {
+      text-align: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+    }
+
+    .full-name {
+      font-size: 24pt;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.4px;
+    }
+
+    .contact-row {
+      font-size: 10.5pt;
+      color: #1f2a33;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .contact-row span {
+      padding: 2px 8px;
+      background: rgba(11,111,178,0.06);
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .contact-row .dot {
+      display: none;
+    }
+
+    hr.header-rule {
+      border: 0; height: 1px; background: #0b6fb2; margin: 8px 0 18px 0;
+    }
+
+    /* Section header style (centered title with thin rule) */
+    .section-title-outer { text-align: center; margin: 14px 0 8px 0 }
+    .section-title {
+      display: inline-block;
+      padding: 6px 14px;
+      font-weight: 700;
+      font-size: 10.5pt;
+      letter-spacing: 0.5px;
+      background: #fff;
+      position: relative;
+    }
+    .section-title { position: relative; z-index: 1 }
+
+    /* gentle section block backgrounds and spacing */
+    .section-block {
+      margin: 10px 0 18px 0;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #fbfdff;
+      border: 1px solid rgba(11,111,178,0.06);
+    }
+
+    /* Experience card style */
+    .experience .experience-item {
+      background: #fff;
+      border-left: 4px solid rgba(11,111,178,0.12);
+      padding: 12px 14px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(10,20,30,0.04);
+      margin-bottom: 14px;
+    }
+
+    .experience .exp-header { gap:12px }
+
+    /* Make section titles more visible */
+    .section-title { color: #0b6fb2; padding: 8px 18px; background: rgba(11,111,178,0.06); border-radius: 20px; font-size: 12.5pt; font-weight:700 }
+
+    /* Slightly larger spacing for readability */
+    .about { margin: 12px 0 16px 0; line-height: 1.5 }
+    ul.list { margin:12px 0 0 18px; padding:0; line-height:1.55 }
+    ul.list li { margin-bottom:8px }
+
+    .about { margin: 10px 0 14px 0; line-height: 1.45 }
+
+    /* Experience */
+    .experience-item { margin-bottom: 14px }
+    .exp-header { display:flex; justify-content:space-between; align-items:flex-start }
+    .exp-left { font-weight:700 }
+    .exp-right { color:#666; font-size:10pt }
+    .exp-company { color:#333; font-weight:600; margin-top:2px }
+
+    ul.list { margin:10px 0 0 18px; padding:0; line-height:1.45 }
+    ul.list li { margin-bottom:8px }
+
+    /* Skills block: simple stacked list (reverted to simpler layout) */
+    .skills-list { display:block; margin-top:8px }
+    .skill-item { font-size:10pt; color:#333; margin-bottom:8px }
+
+    .education { margin-top:10px }
+
+    footer { margin-top:18px; font-size:9pt; color:#777; text-align:center }
+
+    @media print {
+      .wrap { padding: 6mm }
+      .section-title-outer:before { background:#c7d9e6 }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="full-name">{{ data['name'] }}</div>
+      <div class="contact-row">
+        <span>{{ data['address'] }}</span>
+        <span class="dot">&middot;</span>
+        <span>{{ data['email'] }}</span>
+        <span class="dot">&middot;</span>
+        <span>{{ data.get('telegram_address','') }}</span>
+      </div>
+      <hr class="header-rule" />
+    </header>
+
+    {% if data.get('about me') %}
+    <div class="section-title-outer">
+      <div class="section-title">ОБО МНЕ</div>
+    </div>
+    <div class="section-block about">
+      {% for p in data['about me'] %}
+        <p>{{ p }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if data.get('skills') %}
+    <div class="section-title-outer">
+      <div class="section-title">ТЕХНИЧЕСКИЕ НАВЫКИ</div>
+    </div>
+    <div class="section-block">
+      <div class="skills-list">
+        {% for s in data['skills'] %}
+          <div class="skill-item">• {{ s }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if data.get('work experience') %}
+    <div class="section-title-outer">
+      <div class="section-title">КОММЕРЧЕСКИЙ ОПЫТ</div>
+    </div>
+    <div class="section-block">
+      <div class="experience">
+        {% for job in data['work experience'] %}
+          <div class="experience-item">
+            <div class="exp-header">
+              <div>
+                <div class="exp-left">{{ job['role'] }}</div>
+                <div class="exp-company">{{ job['company name'] }}</div>
+              </div>
+              <div class="exp-right">{{ job['period'] }}</div>
+            </div>
+            <ul class="list">
+              {% for e in job.get('experience', []) %}
+                <li>{{ e }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if data.get('education') %}
+    <div class="section-title-outer">
+      <div class="section-title">ОБРАЗОВАНИЕ</div>
+    </div>
+    <div class="section-block education">
+      {% for edu in data['education'] %}
+        <div class="education-item">
+          <div style="overflow:hidden;">
+            <strong>{{ edu['institution'] }}</strong>
+            <span style="float:right;color:#666">{{ edu.get('period','') }}</span>
+          </div>
+          <div style="margin-top:6px">{{ edu.get('degree','') }}</div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</body>
+</html>
