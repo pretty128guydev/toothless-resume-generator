@@ -43,16 +43,17 @@ async def generate(request: Request):
     data = parse_text(text)
     html = render_html(data, str(TEMPLATES_DIR))
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-        pdf_path = Path(tmp.name)
+    pdf_path = BASE_DIR / 'Dmitry.pdf'
 
-    await asyncio.to_thread(html_to_pdf, html, str(pdf_path), base_url=str(TEMPLATES_DIR))
+    try:
+        await asyncio.to_thread(html_to_pdf, html, str(pdf_path), base_url=str(TEMPLATES_DIR))
+    except Exception as e:
+        raise HTTPException(status_code=409, detail='Please close the opened Dmitry.pdf and try again.') from e
 
     pdf_bytes = pdf_path.read_bytes()
-    pdf_path.unlink(missing_ok=True)
 
     return StreamingResponse(io.BytesIO(pdf_bytes), media_type='application/pdf', headers={
-        'Content-Disposition': 'attachment; filename="resume.pdf"'
+        'Content-Disposition': 'attachment; filename="Dmitry.pdf"'
     })
 
 
