@@ -38,6 +38,14 @@ python -m uvicorn api_server:app --reload
 
 Open http://127.0.0.1:8000 in your browser, paste text, and click Download PDF.
 
+One-click launcher (Windows)
+
+Double-click start_server.bat to set up the venv (if needed) and launch the server:
+
+```bat
+start_server.bat
+```
+
 Text-to-JSON helper
 
 If you have plain text like in inputdata.txt, convert it to JSON:
