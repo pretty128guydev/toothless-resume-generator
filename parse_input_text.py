@@ -8,19 +8,35 @@ from pathlib import Path
 SECTION_TITLES = {
     'Профессиональный профиль': 'about me',
     'ПРОФЕССИОНАЛЬНОЕ РЕЗЮМЕ': 'about me',
+    'ОБО МНЕ': 'about me',
     'О себе': 'about me',
     'Навыки': 'skills',
     'Ключевые навыки': 'skills',
     'КЛЮЧЕВЫЕ НАВЫКИ': 'skills',
+    'ТЕХНИЧЕСКИЕ НАВЫКИ': 'skills',
     'Дополнительно': 'skills',
     'ДОПОЛНИТЕЛЬНО': 'skills',
     'Опыт работы': 'work experience',
     'ОПЫТ РАБОТЫ': 'work experience',
+    'КОММЕРЧЕСКИЙ ОПЫТ': 'work experience',
     'Образование': 'education',
     'ОБРАЗОВАНИЕ': 'education',
     'Сопроводительное письмо': 'cover letter',
     'СОПРОВОДИТЕЛЬНОЕ ПИСЬМО': 'cover letter',
     'Короткое сопроводительное письмо': 'cover letter'
+}
+
+KNOWN_COMPANIES = {
+    'SMARTER HOLDINGS INTERNATIONAL LTD',
+    'LANDINGDV',
+    'INSIDE 360',
+    'ООО «ДИАСОФТ»',
+    'ООО "ДИАСОФТ"',
+    'ДИАСОФТ',
+    'RETAILOS',
+    'TECHAHEADLAB',
+    'TECHAHEADLAB (USA)',
+    'TECHAHEADLAB USA'
 }
 
 
@@ -121,20 +137,40 @@ def _parse_education(section_lines):
 
 def _parse_work_experience(section_lines):
     # Heuristic parser for formats:
-    # Role
-    # Company
-    # Period (e.g. Июнь 2023 по Сентябрь 2025)
-    # bullets...
+    # A) Role
+    #    Company
+    #    Period (e.g. Июнь 2023 по Сентябрь 2025)
+    #    bullets...
+    # B) Company — Role
+    #    Period
+    #    bullets...
     lines = [l for l in section_lines if l.strip() != '']
     jobs = []
     months = r'(Январ|Феврал|Март|Апрел|Май|Июн|Июл|Август|Сентябр|Октябр|Ноябр|Декабр)'
-    period_re = re.compile(rf'{months}.*\d{{4}}.*(по|—|-).*{months}.*\d{{4}}', re.IGNORECASE)
+    period_re = re.compile(rf'{months}.*\d{{4}}.*(по|—|–|-).*{months}.*\d{{4}}', re.IGNORECASE)
+    years_re = re.compile(r'\b\d{4}\s*(по|—|–|-)\s*\d{4}\b', re.IGNORECASE)
+
+    def is_company_line(line: str) -> bool:
+        norm = _norm_heading(line)
+        if norm in KNOWN_COMPANIES:
+            return True
+        if re.search(r'\b(LLC|LTD|INC|ООО|АО|ЗАО)\b', norm):
+            return True
+        return False
 
     def is_period(line: str) -> bool:
-        return bool(period_re.search(line))
+        return bool(period_re.search(line) or years_re.search(line))
 
     def is_heading(line: str) -> bool:
         return _norm_heading(line) in {_norm_heading(k) for k in SECTION_TITLES.keys()}
+
+    def looks_like_role_line(line: str) -> bool:
+        role_keywords = (
+            'developer', 'engineer', 'разработчик', 'инженер', 'frontend', 'backend',
+            'full-stack', 'fullstack', 'web', 'senior', 'lead', 'architect', 'архитектор'
+        )
+        low = line.lower()
+        return any(k in low for k in role_keywords)
 
     def looks_like_job_start(idx: int) -> bool:
         if idx + 2 >= len(lines):
@@ -143,19 +179,77 @@ def _parse_work_experience(section_lines):
             return False
         return is_period(lines[idx + 2])
 
+    def looks_like_job_start_alt(idx: int) -> bool:
+        if idx + 1 >= len(lines):
+            return False
+        if is_heading(lines[idx]) or is_heading(lines[idx + 1]):
+            return False
+        if '—' not in lines[idx]:
+            return False
+        if not is_period(lines[idx + 1]):
+            return False
+        # avoid treating bullet-like statements as job headers
+        left = lines[idx].split('—', 1)[0].strip()
+        if not is_company_line(left):
+            return False
+        return True
+
+    def looks_like_job_start_company_first(idx: int) -> bool:
+        if idx + 2 >= len(lines):
+            return False
+        if is_heading(lines[idx + 1]) or is_heading(lines[idx + 2]):
+            return False
+        if not is_period(lines[idx + 2]):
+            return False
+        # company line can be any name if role line looks valid
+        if looks_like_role_line(lines[idx + 1]):
+            return True
+        return is_company_line(lines[idx])
+
+    def looks_like_job_start_company_period_role(idx: int) -> bool:
+        if idx + 2 >= len(lines):
+            return False
+        if is_heading(lines[idx + 1]) or is_heading(lines[idx + 2]):
+            return False
+        if not is_company_line(lines[idx]):
+            return False
+        if not is_period(lines[idx + 1]):
+            return False
+        return looks_like_role_line(lines[idx + 2])
+
     i = 0
     while i < len(lines):
         if is_heading(lines[i]):
             i += 1
             continue
-        if not looks_like_job_start(i):
+        if looks_like_job_start_alt(i):
+            comp_role = lines[i].strip()
+            period = lines[i + 1].strip()
+            company = ''
+            role = ''
+            if '—' in comp_role:
+                parts = [p.strip() for p in comp_role.split('—', 1)]
+                company = parts[0]
+                role = parts[1] if len(parts) > 1 else ''
+            i += 2
+        elif looks_like_job_start_company_period_role(i):
+            company = lines[i].strip()
+            period = lines[i + 1].strip()
+            role = lines[i + 2].strip()
+            i += 3
+        elif looks_like_job_start_company_first(i):
+            company = lines[i].strip()
+            role = lines[i + 1].strip()
+            period = lines[i + 2].strip()
+            i += 3
+        elif looks_like_job_start(i):
+            role = lines[i].strip()
+            company = lines[i + 1].strip()
+            period = lines[i + 2].strip()
+            i += 3
+        else:
             i += 1
             continue
-
-        role = lines[i].strip()
-        company = lines[i + 1].strip()
-        period = lines[i + 2].strip()
-        i += 3
 
         bullets = []
         while i < len(lines):
@@ -181,15 +275,17 @@ def parse_text(text: str):
     sections = _split_sections(lines)
 
     data = {
-        'name': 'Иванов Дмитрий Александрович',
-        'address': 'Санкт-Петербург, Россия',
-        'email': 'wmcg.three.3@gmail.com',
-        'telegram_address': '@dmitry_120804'
+        'name': 'Игнатов Сергей Николаевич',
+        'address': 'Владивосток, Россия',
+        'email': 'cenergiy408@gmail.com',
+        'telegram_address': '@ignatov_110104',
     }
 
     # About sections
     about = []
-    if 'О себе' in sections:
+    if 'ОБО МНЕ' in sections:
+        about.extend(_parse_about(sections['ОБО МНЕ']))
+    elif 'О себе' in sections:
         about.extend(_parse_about(sections['О себе']))
     elif 'Профессиональный профиль' in sections:
         about.extend(_parse_about(sections['Профессиональный профиль']))
@@ -199,7 +295,9 @@ def parse_text(text: str):
         data['about me'] = about
 
     # Work experience
-    if 'Опыт работы' in sections:
+    if 'КОММЕРЧЕСКИЙ ОПЫТ' in sections:
+        data['work experience'] = _parse_work_experience(sections['КОММЕРЧЕСКИЙ ОПЫТ'])
+    elif 'Опыт работы' in sections:
         data['work experience'] = _parse_work_experience(sections['Опыт работы'])
     elif 'ОПЫТ РАБОТЫ' in sections:
         data['work experience'] = _parse_work_experience(sections['ОПЫТ РАБОТЫ'])
@@ -208,9 +306,9 @@ def parse_text(text: str):
     # Use fixed education entry regardless of input text
     data['education'] = [
         {
-            'institution': 'Тульский государственный университет',
-            'period': '2012 - 2016',
-            'degree': 'Бакалавр Компьютерных наук'
+            'institution': 'Саратовский государственный технический университет',
+            'period': '1997 - 2002',
+            'degree': 'Специалитет: инженер по прикладной информатике'
         }
     ]
 
@@ -222,6 +320,8 @@ def parse_text(text: str):
         skills.extend(_parse_skills(sections['Ключевые навыки']))
     if 'КЛЮЧЕВЫЕ НАВЫКИ' in sections:
         skills.extend(_parse_skills(sections['КЛЮЧЕВЫЕ НАВЫКИ']))
+    if 'ТЕХНИЧЕСКИЕ НАВЫКИ' in sections:
+        skills.extend(_parse_skills(sections['ТЕХНИЧЕСКИЕ НАВЫКИ']))
     if 'Дополнительно' in sections:
         skills.extend(_parse_skills(sections['Дополнительно']))
     if 'ДОПОЛНИТЕЛЬНО' in sections:
@@ -236,6 +336,11 @@ def parse_text(text: str):
         data['cover letter'] = _parse_about(sections['СОПРОВОДИТЕЛЬНОЕ ПИСЬМО'])
     elif 'Короткое сопроводительное письмо' in sections:
         data['cover letter'] = _parse_about(sections['Короткое сопроводительное письмо'])
+
+    # Drop leading non-letterhead line if it looks like a preface
+    if 'cover letter' in data and data['cover letter']:
+        if data['cover letter'][0].lower().startswith('теперь подготовим'):
+            data['cover letter'] = data['cover letter'][1:]
 
     return data
 
