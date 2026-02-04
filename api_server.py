@@ -7,7 +7,8 @@ import asyncio
 import sys
 
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from parse_input_text import parse_text
 from generate_resume import render_html, html_to_pdf
@@ -22,6 +23,9 @@ app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / 'templates'
 UI_INDEX = BASE_DIR / 'ui' / 'index.html'
+UI_DIR = BASE_DIR / 'ui'
+
+app.mount('/ui', StaticFiles(directory=str(UI_DIR), html=True), name='ui')
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -50,3 +54,15 @@ async def generate(request: Request):
     return StreamingResponse(io.BytesIO(pdf_bytes), media_type='application/pdf', headers={
         'Content-Disposition': 'attachment; filename="resume.pdf"'
     })
+
+
+@app.post('/api/coverletter')
+async def coverletter(request: Request):
+    payload = await request.json()
+    text = (payload or {}).get('text', '')
+    if not text.strip():
+        raise HTTPException(status_code=400, detail='Empty text')
+
+    data = parse_text(text)
+    letter = '\n\n'.join(data.get('cover letter', []))
+    return JSONResponse({'cover_letter': letter})

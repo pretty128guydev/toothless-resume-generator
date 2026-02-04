@@ -7,10 +7,12 @@ from pathlib import Path
 
 SECTION_TITLES = {
     'Профессиональный профиль': 'about me',
+    'О себе': 'about me',
+    'Навыки': 'skills',
+    'Ключевые навыки': 'skills',
     'Опыт работы': 'work experience',
     'Образование': 'education',
-    'Ключевые навыки': 'skills',
-    'О себе': 'about me',
+    'Сопроводительное письмо': 'cover letter',
     'Короткое сопроводительное письмо': 'cover letter'
 }
 
@@ -105,65 +107,48 @@ def _parse_education(section_lines):
 
 
 def _parse_work_experience(section_lines):
-    # Heuristic parser based on block structure with blank lines
-    blocks = []
-    cur = []
-    for line in section_lines:
-        if line == '':
-            if cur:
-                blocks.append(cur)
-                cur = []
-            continue
-        cur.append(line)
-    if cur:
-        blocks.append(cur)
-
+    # Heuristic parser for new format:
+    # Period line
+    # Company — Role line
+    # bullets until next period line
+    lines = [l for l in section_lines if l != '']
     jobs = []
     i = 0
-    while i < len(blocks):
-        block = blocks[i]
-        if not block:
+    period_re = re.compile(r'\b\d{4}\b')
+    while i < len(lines):
+        line = lines[i]
+        if not period_re.search(line):
             i += 1
             continue
-        company = block[0].strip()
+
+        period = line.strip()
+        company = ''
         role = ''
-        period = ''
         bullets = []
-        stack_line = ''
 
-        if i + 1 < len(blocks):
-            role_block = blocks[i + 1]
-            if role_block:
-                role = role_block[0].strip()
-            if len(role_block) > 1:
-                period = role_block[1].strip()
-        i += 2
-
-        while i < len(blocks):
-            b = blocks[i]
-            joined = ' '.join(b).strip()
-            if joined.startswith('Стек:'):
-                stack_line = joined
-                i += 1
-                break
-            # detect start of next company by single-line capitalized
-            if len(b) == 1 and b[0].istitle() and b[0] != 'Стек:':
-                break
-            bullets.extend(b)
+        if i + 1 < len(lines):
+            comp_role = lines[i + 1]
+            if '—' in comp_role:
+                parts = [p.strip() for p in comp_role.split('—', 1)]
+                company = parts[0]
+                role = parts[1] if len(parts) > 1 else ''
+            else:
+                company = comp_role.strip()
+            i += 2
+        else:
             i += 1
 
-        if stack_line:
-            bullets.append(stack_line)
+        while i < len(lines) and not period_re.search(lines[i]):
+            bullets.append(lines[i])
+            i += 1
 
-        if company:
+        if company or role or bullets:
             jobs.append({
                 'company name': company,
                 'role': role,
                 'period': period,
                 'experience': [b for b in bullets if b]
             })
-        else:
-            i += 1
 
     return jobs
 
@@ -181,7 +166,9 @@ def parse_text(text: str):
 
     # About sections
     about = []
-    if 'Профессиональный профиль' in sections:
+    if 'О себе' in sections:
+        about.extend(_parse_about(sections['О себе']))
+    elif 'Профессиональный профиль' in sections:
         about.extend(_parse_about(sections['Профессиональный профиль']))
     if about:
         data['about me'] = about
@@ -201,11 +188,15 @@ def parse_text(text: str):
     ]
 
     # Skills
-    if 'Ключевые навыки' in sections:
+    if 'Навыки' in sections:
+        data['skills'] = _parse_skills(sections['Навыки'])
+    elif 'Ключевые навыки' in sections:
         data['skills'] = _parse_skills(sections['Ключевые навыки'])
 
     # Cover letter
-    if 'Короткое сопроводительное письмо' in sections:
+    if 'Сопроводительное письмо' in sections:
+        data['cover letter'] = _parse_about(sections['Сопроводительное письмо'])
+    elif 'Короткое сопроводительное письмо' in sections:
         data['cover letter'] = _parse_about(sections['Короткое сопроводительное письмо'])
 
     return data
