@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resume PDF Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a2e;
+      --panel-2: #18223b;
+      --text: #e9eef7;
+      --muted: #9fb0c6;
+      --accent: #4aa3ff;
+      --accent-2: #77e0c8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, #1c2750 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+    .card {
+      width: min(1100px, 100%);
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 360px;
+      resize: vertical;
+      background: #0e1529;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.45;
+      outline: none;
+    }
+    textarea:focus { border-color: rgba(74,163,255,0.7); box-shadow: 0 0 0 3px rgba(74,163,255,0.15); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn {
+      background: linear-gradient(90deg, var(--accent), #6fb8ff);
+      color: #0b1020;
+      font-weight: 700;
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 18px rgba(74,163,255,0.25);
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text);
+      background: rgba(119,224,200,0.1);
+      border: 1px solid rgba(119,224,200,0.25);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div>
+        <div class="title">Resume PDF Generator</div>
+        <div class="subtitle">Paste text, generate a clean PDF without headers or footers.</div>
+      </div>
+      <div class="pill">React UI</div>
+    </div>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <script type="text/babel">
+    function App() {
+      const [text, setText] = React.useState('');
+      const [status, setStatus] = React.useState('Ready');
+      const [loading, setLoading] = React.useState(false);
+
+      const downloadPdf = async () => {
+        if (!text.trim()) {
+          setStatus('Please paste your resume text first.');
+          return;
+        }
+        setLoading(true);
+        setStatus('Generating PDF...');
+        try {
+          const res = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+          });
+          if (!res.ok) {
+            const msg = await res.text();
+            throw new Error(msg || 'Failed to generate PDF');
+          }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'resume.pdf';
+          a.click();
+          URL.revokeObjectURL(url);
+          setStatus('PDF downloaded successfully.');
+        } catch (err) {
+          setStatus(err.message || 'Error generating PDF');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="grid">
+          <textarea
+            placeholder="Paste your resume text here..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="actions">
+            <button className="btn" onClick={downloadPdf} disabled={loading}>Download PDF</button>
+            <div className="status">{status}</div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

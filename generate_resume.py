@@ -26,6 +26,11 @@ try:
 except Exception:
     sync_playwright = None
 
+try:
+    from playwright.async_api import async_playwright
+except Exception:
+    async_playwright = None
+
 import urllib.request
 import urllib.parse
 import json as _json
@@ -184,6 +189,27 @@ def _playwright_print(tmp_html, output_path):
         print(f'Playwright rendering failed: {e}')
         return False
 
+async def _playwright_print_async(tmp_html, output_path):
+    if async_playwright is None:
+        return False
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(Path(tmp_html).resolve().as_uri(), wait_until='networkidle')
+            await page.emulate_media(media='print')
+            await page.pdf(
+                path=output_path,
+                format='A4',
+                print_background=True,
+                display_header_footer=False,
+                margin={'top': '10mm', 'bottom': '10mm', 'left': '10mm', 'right': '10mm'}
+            )
+            await browser.close()
+        return True
+    except Exception:
+        return False
+
 
 def html_to_pdf(html_string, output_path, base_url=None, browser_path=None):
     if HTML is not None:
@@ -235,6 +261,32 @@ def html_to_pdf(html_string, output_path, base_url=None, browser_path=None):
                 return
         except Exception:
             continue
+
+    try:
+        os.remove(tmp_html)
+    except Exception:
+        pass
+    raise RuntimeError('Failed to render PDF without headers. Install Playwright browsers or enable WeasyPrint.')
+
+async def html_to_pdf_async(html_string, output_path, base_url=None):
+    if HTML is not None:
+        try:
+            HTML(string=html_string, base_url=base_url).write_pdf(output_path)
+            return
+        except Exception as e:
+            print('WeasyPrint failed:', e)
+
+    fd, tmp_html = tempfile.mkstemp(suffix='.html')
+    os.close(fd)
+    with open(tmp_html, 'w', encoding='utf-8') as f:
+        f.write(html_string)
+
+    if await _playwright_print_async(tmp_html, output_path):
+        try:
+            os.remove(tmp_html)
+        except Exception:
+            pass
+        return
 
     try:
         os.remove(tmp_html)

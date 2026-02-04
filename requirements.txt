@@ -2,3 +2,5 @@ Jinja2>=3.0
 WeasyPrint>=56.0
 websocket-client>=1.6.2
 playwright>=1.40.0
+fastapi>=0.110.0
+uvicorn>=0.27.0

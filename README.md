@@ -26,6 +26,18 @@ Usage
 python generate_resume.py sample_input.json --output my_resume.pdf
 ```
 
+React UI
+
+Start the API server (serves the React UI and PDF endpoint):
+
+```bash
+pip install -r requirements.txt
+python -m playwright install
+python -m uvicorn api_server:app --reload
+```
+
+Open http://127.0.0.1:8000 in your browser, paste text, and click Download PDF.
+
 Text-to-JSON helper
 
 If you have plain text like in inputdata.txt, convert it to JSON:
