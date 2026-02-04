@@ -26,6 +26,14 @@ Usage
 python generate_resume.py sample_input.json --output my_resume.pdf
 ```
 
+Text-to-JSON helper
+
+If you have plain text like in inputdata.txt, convert it to JSON:
+
+```bash
+python parse_input_text.py inputdata.txt --output sample_input.json
+```
+
 Files
 
 - `generate_resume.py` - main script
