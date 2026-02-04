@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    @page { size: A4; margin: 8mm }
+    * { box-sizing: border-box }
+    body { font-family: Arial, sans-serif; font-size: 9.5pt; color: #111827; margin: 0; background: #fff; line-height: 1.45; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 8mm; }
+    .header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-bottom: 2px solid #111827; padding-bottom: 6px; margin-bottom: 10px; }
+    .name { font-size: 24pt; font-weight: 800; margin: 0; }
+    .contact { font-size: 9pt; color: #4b5563; display: flex; flex-wrap: wrap; gap: 6px 10px; }
+    .section-title { font-size: 10pt; font-weight: 800; text-transform: uppercase; margin: 10px 0 8px; }
+    .section { margin-bottom: 20px; }
+    .skills { columns: 2; column-gap: 20px; }
+    .skills .item { break-inside: avoid; margin-bottom: 4px; }
+    .job { margin-bottom: 8px; }
+    .job-header { display: flex; justify-content: space-between; gap: 10px; }
+    ul { margin: 4px 0 0 18px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1 class="name">{{ data['name'] }}</h1>
+      <div class="contact">
+        {% if data.get('email') %}<span>{{ data['email'] }}</span>{% endif %}
+        {% if data.get('address') %}<span>{{ data['address'] }}</span>{% endif %}
+        {% if data.get('telegram_address') %}<span>{{ data['telegram_address'] }}</span>{% endif %}
+      </div>
+    </div>
+
+    {% if data.get('about me') %}
+    <div class="section">
+      <div class="section-title">Обо мне</div>
+      {% for p in data['about me'] %}<div>{{ p }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if data.get('skills') %}
+    <div class="section">
+      <div class="section-title">Навыки</div>
+      <div class="skills">
+        {% for s in data['skills'] %}<div class="item">• {{ s }}</div>{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if data.get('work experience') %}
+    <div class="section">
+      <div class="section-title">Коммерческий опыт</div>
+      {% for job in data['work experience'] %}
+      <div class="job">
+        <div class="job-header">
+          <div>
+            <strong>{{ job['role'] }}</strong> — <span style="color:#4b5563;">{{ job['company name'] }}</span>
+          </div>
+          <div style="color:#6b7280; white-space: nowrap;">{{ job['period'] }}</div>
+        </div>
+        <ul>
+          {% for exp in job.get('experience', []) %}<li>{{ exp }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if data.get('education') %}
+    <div class="section">
+      <div class="section-title">Образование</div>
+      {% for edu in data['education'] %}
+      <div class="job">
+        <div class="job-header">
+          <div><strong>{{ edu['institution'] }}</strong></div>
+          <div style="color:#6b7280; white-space: nowrap;">{{ edu.get('period','') }}</div>
+        </div>
+        <div style="color:#4b5563;">{{ edu.get('degree','') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>

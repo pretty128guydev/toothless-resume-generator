@@ -36,7 +36,7 @@
       50% { background-position: 100% 30%; }
     }
     .card {
-      width: min(1100px, 100%);
+      width: min(1600px, 100%);
       background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid rgba(255,255,255,0.06);
       border-radius: 18px;
@@ -78,12 +78,65 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 16px;
+      align-items: start;
+    }
+    .left-panel { display: grid; gap: 16px; }
+    .preview-panel {
+      background: #0e1529;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px;
+      position: sticky;
+      top: 16px;
+    }
+    .preview-title { font-weight: 700; margin-bottom: 8px; }
+    .preview-frame {
+      width: 100%;
+      height: 560px;
+      border: 0;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .preview-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .template-card {
+      background: #0e1529;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .template-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(74,163,255,0.6);
+    }
+    .template-card.selected {
+      border-color: rgba(119,224,200,0.8);
+      box-shadow: 0 0 0 2px rgba(119,224,200,0.15) inset;
+    }
+    .template-title { font-weight: 700; margin-bottom: 6px; }
+    .template-desc { font-size: 12px; color: var(--muted); }
+    .template-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn.secondary {
+      background: linear-gradient(90deg, #77e0c8, #9af0dc);
+      color: #0b1020;
+      box-shadow: 0 8px 18px rgba(119,224,200,0.25);
     }
     textarea {
       width: 100%;
-      min-height: 360px;
+      min-height: 260px;
       resize: vertical;
       background: #0e1529;
       border: 1px solid rgba(255,255,255,0.08);
@@ -180,6 +233,21 @@
       const [status, setStatus] = React.useState('Ready');
       const [toast, setToast] = React.useState({ message: '', type: 'success', visible: false });
       const [loading, setLoading] = React.useState(false);
+      const [template, setTemplate] = React.useState('resume.html');
+
+      const templates = [
+        { id: 'resume.html', name: 'Default', desc: 'Clean & balanced layout' },
+        { id: 'resume_smart.html', name: 'Smart', desc: 'Elegant single-column style' },
+        { id: 'resume_pro.html', name: 'Pro', desc: 'Executive professional look' },
+        { id: 'resume_minimal.html', name: 'Minimal', desc: 'Simple and calm' },
+        { id: 'resume_modern.html', name: 'Modern', desc: 'Gradient accent divider' },
+        { id: 'resume_classic.html', name: 'Classic', desc: 'Traditional serif layout' },
+        { id: 'resume_executive.html', name: 'Executive', desc: 'Bold boxed sections' },
+        { id: 'resume_twocolumn.html', name: 'Two Column', desc: 'Sidebar with skills' },
+        { id: 'resume_compact.html', name: 'Compact', desc: 'Dense one-page style' },
+        { id: 'resume_accent.html', name: 'Accent', desc: 'Top banner style' },
+        { id: 'resume_aurora.html', name: 'Aurora', desc: 'Colorful header gradient' }
+      ];
 
       const showToast = (message, type = 'success') => {
         setToast({ message, type, visible: true });
@@ -198,7 +266,7 @@
           const res = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
+            body: JSON.stringify({ text, template })
           });
           if (!res.ok) {
             const msg = await res.text();
@@ -231,6 +299,39 @@
         } catch (err) {
           setStatus(err.message || 'Error generating PDF');
           showToast(err.message || 'Error generating PDF', 'error');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const previewTemplate = async () => {
+        if (!text.trim()) {
+          setStatus('Please paste your resume text first.');
+          showToast('Please paste your resume text first.', 'error');
+          return;
+        }
+        setLoading(true);
+        setStatus('Preparing preview...');
+        try {
+          const res = await fetch('/api/preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, template })
+          });
+          if (!res.ok) {
+            const msg = await res.text();
+            throw new Error(msg || 'Failed to preview');
+          }
+          const html = await res.text();
+          const blob = new Blob([html], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+          setStatus('Preview opened.');
+          showToast('Preview opened.', 'success');
+        } catch (err) {
+          setStatus(err.message || 'Error previewing');
+          showToast(err.message || 'Error previewing', 'error');
         } finally {
           setLoading(false);
         }
@@ -272,20 +373,46 @@
         }
       };
 
+      const previewUrl = `/api/preview-template?template=${encodeURIComponent(template)}`;
+
       return (
         <div className="grid">
-          <textarea
-            placeholder="Paste your resume text here..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <div className="actions">
-            <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
-              <button className="btn" onClick={downloadPdf} disabled={loading}>Download PDF</button>
-              <button className="btn" onClick={copyCoverLetter} disabled={loading} style={{background: 'linear-gradient(90deg, var(--accent-2), #9af0dc)'}}>Copy Cover Letter</button>
+          <div className="left-panel">
+            <div>
+              <div className="subtitle" style={{marginBottom: '8px'}}>Choose a resume style</div>
+              <div className="template-grid">
+                {templates.map((t) => (
+                  <div
+                    key={t.id}
+                    className={`template-card ${template === t.id ? 'selected' : ''}`}
+                    onClick={() => setTemplate(t.id)}
+                  >
+                    <div className="template-title">{t.name}</div>
+                    <div className="template-desc">{t.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="status">{status}</div>
+            <textarea
+              placeholder="Paste your resume text here..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <div className="actions">
+              <div className="template-actions">
+                <button className="btn" onClick={downloadPdf} disabled={loading}>Download PDF</button>
+                <button className="btn secondary" onClick={previewTemplate} disabled={loading}>Preview Template</button>
+                <button className="btn" onClick={copyCoverLetter} disabled={loading} style={{background: 'linear-gradient(90deg, var(--accent-2), #9af0dc)'}}>Copy Cover Letter</button>
+              </div>
+              <div className="status">{status}</div>
+            </div>
           </div>
+
+          <div className="preview-panel">
+            <div className="preview-title">Template Preview</div>
+            <iframe className="preview-frame" title="Template Preview" src={previewUrl} />
+          </div>
+
           <div className={`toast ${toast.type} ${toast.visible ? 'show' : ''}`}>{toast.message}</div>
         </div>
       );
