@@ -208,7 +208,7 @@
           const arrayBuffer = await blob.arrayBuffer();
           if (window.showSaveFilePicker) {
             const handle = await window.showSaveFilePicker({
-              suggestedName: 'Dmitry.pdf',
+              suggestedName: 'Сергей.pdf',
               types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
             });
             const writable = await handle.createWritable();
@@ -221,7 +221,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'Dmitry.pdf';
+            a.download = 'Сергей.pdf';
             a.click();
             URL.revokeObjectURL(url);
             setStatus('PDF downloaded successfully.');

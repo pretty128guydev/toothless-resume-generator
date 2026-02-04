@@ -50,6 +50,12 @@ def _normalize_lines(text: str):
     return lines
 
 
+def _strip_bullet_prefix(s: str) -> str:
+    if not s:
+        return s
+    return re.sub(r'^[\s\u2022\u2023\u25E6\-\*\u00B7]+', '', s).strip()
+
+
 def _split_sections(lines):
     sections = {}
     current = None
@@ -89,14 +95,15 @@ def _parse_skills(section_lines):
     for line in section_lines:
         if not line:
             continue
-        if ':' in line:
-            label, rest = line.split(':', 1)
+        ln = _strip_bullet_prefix(line)
+        if ':' in ln:
+            label, rest = ln.split(':', 1)
             label = label.strip()
             rest = rest.strip()
             if rest:
                 skills.append(f"{label}: {rest}")
         else:
-            skills.append(line)
+            skills.append(ln)
     return skills
 
 
@@ -147,7 +154,10 @@ def _parse_work_experience(section_lines):
     lines = [l for l in section_lines if l.strip() != '']
     jobs = []
     months = r'(Январ|Феврал|Март|Апрел|Май|Июн|Июл|Август|Сентябр|Октябр|Ноябр|Декабр)'
-    period_re = re.compile(rf'{months}.*\d{{4}}.*(по|—|–|-).*{months}.*\d{{4}}', re.IGNORECASE)
+    period_re = re.compile(
+        rf'{months}.*\d{{4}}.*((по|—|–|-)\s*)?{months}.*\d{{4}}',
+        re.IGNORECASE
+    )
     years_re = re.compile(r'\b\d{4}\s*(по|—|–|-)\s*\d{4}\b', re.IGNORECASE)
 
     def is_company_line(line: str) -> bool:
@@ -222,6 +232,46 @@ def _parse_work_experience(section_lines):
         if is_heading(lines[i]):
             i += 1
             continue
+        # Handle case where a period line appears alone followed by bullets
+        # e.g.
+        # Январь 2011 – Август 2016
+        # • did X
+        # • did Y
+        if is_period(lines[i]) and i + 1 < len(lines) and lines[i + 1].lstrip().startswith(('•', '-', '*')):
+            period = lines[i].strip()
+            # Try to infer company/role from previous lines if available
+            company = ''
+            role = ''
+            if i - 1 >= 0:
+                prev = lines[i - 1].strip()
+                if looks_like_role_line(prev):
+                    role = prev
+                    if i - 2 >= 0 and is_company_line(lines[i - 2]):
+                        company = lines[i - 2].strip()
+                elif is_company_line(prev):
+                    company = prev
+                    if i - 2 >= 0 and looks_like_role_line(lines[i - 2]):
+                        role = lines[i - 2].strip()
+
+            i += 1
+            bullets = []
+            while i < len(lines):
+                if looks_like_job_start(i) or is_heading(lines[i]):
+                    break
+                ln = lines[i].lstrip()
+                # strip common bullet markers
+                ln = re.sub(r'^[\u2022\-\*\u2023\u25E6\s]+', '', ln).strip()
+                if ln:
+                    bullets.append(ln)
+                i += 1
+
+            jobs.append({
+                'company name': company,
+                'role': role,
+                'period': period,
+                'experience': bullets
+            })
+            continue
         if looks_like_job_start_alt(i):
             comp_role = lines[i].strip()
             period = lines[i + 1].strip()
@@ -257,7 +307,9 @@ def _parse_work_experience(section_lines):
                 break
             if is_heading(lines[i]):
                 break
-            bullets.append(lines[i])
+            ln = _strip_bullet_prefix(lines[i])
+            if ln:
+                bullets.append(ln)
             i += 1
 
         jobs.append({
