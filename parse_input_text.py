@@ -168,6 +168,13 @@ def _parse_work_experience(section_lines):
             return True
         return False
 
+    def is_tech_line(line: str) -> bool:
+        low = _strip_bullet_prefix(line).lower().strip()
+        return low.startswith('технологии') or low.startswith('technologies')
+
+    def is_bullet_line(line: str) -> bool:
+        return line.lstrip().startswith(('•', '-', '*'))
+
     def is_period(line: str) -> bool:
         return bool(period_re.search(line) or years_re.search(line))
 
@@ -187,12 +194,22 @@ def _parse_work_experience(section_lines):
             return False
         if is_heading(lines[idx]) or is_heading(lines[idx + 1]) or is_heading(lines[idx + 2]):
             return False
+        if is_bullet_line(lines[idx]) or is_bullet_line(lines[idx + 1]) or is_bullet_line(lines[idx + 2]):
+            return False
+        if is_tech_line(lines[idx]) or is_tech_line(lines[idx + 1]):
+            return False
+        if parse_role_period(lines[idx + 2]) is not None:
+            return False
         return is_period(lines[idx + 2])
 
     def looks_like_job_start_alt(idx: int) -> bool:
         if idx + 1 >= len(lines):
             return False
         if is_heading(lines[idx]) or is_heading(lines[idx + 1]):
+            return False
+        if is_bullet_line(lines[idx]) or is_bullet_line(lines[idx + 1]):
+            return False
+        if is_tech_line(lines[idx]):
             return False
         if '—' not in lines[idx]:
             return False
@@ -209,6 +226,12 @@ def _parse_work_experience(section_lines):
             return False
         if is_heading(lines[idx + 1]) or is_heading(lines[idx + 2]):
             return False
+        if is_bullet_line(lines[idx]) or is_bullet_line(lines[idx + 1]) or is_bullet_line(lines[idx + 2]):
+            return False
+        if is_tech_line(lines[idx]):
+            return False
+        if parse_role_period(lines[idx + 2]) is not None:
+            return False
         if not is_period(lines[idx + 2]):
             return False
         # company line can be any name if role line looks valid
@@ -216,12 +239,49 @@ def _parse_work_experience(section_lines):
             return True
         return is_company_line(lines[idx])
 
+    def parse_role_period(line: str):
+        # formats like: "Senior Backend Developer | Июнь 2021 – Ноябрь 2025"
+        # or: "Senior Developer — 2018 – 2020"
+        if '|' in line:
+            left, right = [p.strip() for p in line.split('|', 1)]
+        elif '—' in line:
+            left, right = [p.strip() for p in line.split('—', 1)]
+        elif '-' in line and is_period(line):
+            # ambiguous; skip if no clear separator
+            return None
+        else:
+            return None
+        if not left or not right:
+            return None
+        if not is_period(right):
+            return None
+        return left, right
+
+    def looks_like_job_start_company_role_period(idx: int) -> bool:
+        if idx + 1 >= len(lines):
+            return False
+        if is_heading(lines[idx]) or is_heading(lines[idx + 1]):
+            return False
+        if is_bullet_line(lines[idx]) or is_bullet_line(lines[idx + 1]):
+            return False
+        if is_tech_line(lines[idx]):
+            return False
+        if looks_like_role_line(lines[idx]):
+            return False
+        return parse_role_period(lines[idx + 1]) is not None
+
     def looks_like_job_start_company_period_role(idx: int) -> bool:
         if idx + 2 >= len(lines):
             return False
         if is_heading(lines[idx + 1]) or is_heading(lines[idx + 2]):
             return False
+        if is_bullet_line(lines[idx]) or is_bullet_line(lines[idx + 1]) or is_bullet_line(lines[idx + 2]):
+            return False
+        if is_tech_line(lines[idx]):
+            return False
         if not is_company_line(lines[idx]):
+            return False
+        if parse_role_period(lines[idx + 1]) is not None:
             return False
         if not is_period(lines[idx + 1]):
             return False
@@ -237,7 +297,7 @@ def _parse_work_experience(section_lines):
         # Январь 2011 – Август 2016
         # • did X
         # • did Y
-        if is_period(lines[i]) and i + 1 < len(lines) and lines[i + 1].lstrip().startswith(('•', '-', '*')):
+        if is_period(lines[i]) and parse_role_period(lines[i]) is None and i + 1 < len(lines) and lines[i + 1].lstrip().startswith(('•', '-', '*')):
             period = lines[i].strip()
             # Try to infer company/role from previous lines if available
             company = ''
@@ -256,7 +316,7 @@ def _parse_work_experience(section_lines):
             i += 1
             bullets = []
             while i < len(lines):
-                if looks_like_job_start(i) or is_heading(lines[i]):
+                if looks_like_job_start(i) or looks_like_job_start_alt(i) or looks_like_job_start_company_period_role(i) or looks_like_job_start_company_first(i) or looks_like_job_start_company_role_period(i) or is_heading(lines[i]):
                     break
                 ln = lines[i].lstrip()
                 # strip common bullet markers
@@ -272,7 +332,12 @@ def _parse_work_experience(section_lines):
                 'experience': bullets
             })
             continue
-        if looks_like_job_start_alt(i):
+        if looks_like_job_start_company_role_period(i):
+            company = lines[i].strip()
+            parsed = parse_role_period(lines[i + 1].strip())
+            role, period = parsed if parsed else ('', '')
+            i += 2
+        elif looks_like_job_start_alt(i):
             comp_role = lines[i].strip()
             period = lines[i + 1].strip()
             company = ''
@@ -303,7 +368,7 @@ def _parse_work_experience(section_lines):
 
         bullets = []
         while i < len(lines):
-            if looks_like_job_start(i):
+            if looks_like_job_start(i) or looks_like_job_start_alt(i) or looks_like_job_start_company_period_role(i) or looks_like_job_start_company_first(i) or looks_like_job_start_company_role_period(i):
                 break
             if is_heading(lines[i]):
                 break
