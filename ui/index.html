@@ -134,6 +134,64 @@
       color: #0b1020;
       box-shadow: 0 8px 18px rgba(119,224,200,0.25);
     }
+    .tab-row {
+      display: inline-flex;
+      gap: 8px;
+      padding: 4px;
+      background: rgba(14,21,41,0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 999px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+    .tab-btn.active {
+      background: linear-gradient(90deg, rgba(74,163,255,0.25), rgba(119,224,200,0.25));
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .field input {
+      width: 100%;
+      background: #0e1529;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    .field input:focus { border-color: rgba(74,163,255,0.7); box-shadow: 0 0 0 3px rgba(74,163,255,0.15); }
+    .helper-text {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
     textarea {
       width: 100%;
       min-height: 260px;
@@ -233,7 +291,17 @@
       const [status, setStatus] = React.useState('Ready');
       const [toast, setToast] = React.useState({ message: '', type: 'success', visible: false });
       const [loading, setLoading] = React.useState(false);
-      const [template, setTemplate] = React.useState('resume.html');
+      const [template, setTemplate] = React.useState('resume_minimal.html');
+      const [activeView, setActiveView] = React.useState('generator');
+      const [defaults, setDefaults] = React.useState({
+        name: 'Игнатов Сергей Николаевич',
+        email: 'cenergiy408@gmail.com',
+        telegram_address: '@ignatov_110104',
+        address: 'Владивосток, Россия',
+        education_institution: 'Саратовский государственный технический университет',
+        education_period: '1997 - 2002',
+        education_degree: 'Специалитет: инженер по прикладной информатике'
+      });
 
       const templates = [
         { id: 'resume.html', name: 'Default', desc: 'Clean & balanced layout' },
@@ -266,7 +334,21 @@
           const res = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, template })
+            body: JSON.stringify({
+              text,
+              template,
+              defaults: {
+                name: defaults.name,
+                email: defaults.email,
+                telegram_address: defaults.telegram_address,
+                address: defaults.address,
+                education: [{
+                  institution: defaults.education_institution,
+                  period: defaults.education_period,
+                  degree: defaults.education_degree
+                }]
+              }
+            })
           });
           if (!res.ok) {
             const msg = await res.text();
@@ -316,7 +398,21 @@
           const res = await fetch('/api/preview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, template })
+            body: JSON.stringify({
+              text,
+              template,
+              defaults: {
+                name: defaults.name,
+                email: defaults.email,
+                telegram_address: defaults.telegram_address,
+                address: defaults.address,
+                education: [{
+                  institution: defaults.education_institution,
+                  period: defaults.education_period,
+                  degree: defaults.education_degree
+                }]
+              }
+            })
           });
           if (!res.ok) {
             const msg = await res.text();
@@ -349,7 +445,20 @@
           const res = await fetch('/api/coverletter', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
+            body: JSON.stringify({
+              text,
+              defaults: {
+                name: defaults.name,
+                email: defaults.email,
+                telegram_address: defaults.telegram_address,
+                address: defaults.address,
+                education: [{
+                  institution: defaults.education_institution,
+                  period: defaults.education_period,
+                  degree: defaults.education_degree
+                }]
+              }
+            })
           });
           if (!res.ok) {
             const msg = await res.text();
@@ -378,6 +487,27 @@
       return (
         <div className="grid">
           <div className="left-panel">
+            <div className="tab-row" role="tablist" aria-label="Sections">
+              <button
+                className={`tab-btn ${activeView === 'generator' ? 'active' : ''}`}
+                onClick={() => setActiveView('generator')}
+                type="button"
+                role="tab"
+                aria-selected={activeView === 'generator'}
+              >
+                Generator
+              </button>
+              <button
+                className={`tab-btn ${activeView === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveView('settings')}
+                type="button"
+                role="tab"
+                aria-selected={activeView === 'settings'}
+              >
+                Settings
+              </button>
+            </div>
+            {activeView === 'generator' && (
             <div>
               <div className="subtitle" style={{marginBottom: '8px'}}>Choose a resume style</div>
               <div className="template-grid">
@@ -393,6 +523,71 @@
                 ))}
               </div>
             </div>
+            )}
+            {activeView === 'settings' && (
+            <div>
+              <div className="section-title">Default values</div>
+              <div className="field-grid">
+                <div className="field">
+                  <label>Full name</label>
+                  <input
+                    value={defaults.name}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="Full name"
+                  />
+                </div>
+                <div className="field">
+                  <label>Email</label>
+                  <input
+                    value={defaults.email}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, email: e.target.value }))}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div className="field">
+                  <label>TG</label>
+                  <input
+                    value={defaults.telegram_address}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, telegram_address: e.target.value }))}
+                    placeholder="@telegram"
+                  />
+                </div>
+                <div className="field">
+                  <label>Address</label>
+                  <input
+                    value={defaults.address}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, address: e.target.value }))}
+                    placeholder="City, Country"
+                  />
+                </div>
+                <div className="field">
+                  <label>Education institution</label>
+                  <input
+                    value={defaults.education_institution}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, education_institution: e.target.value }))}
+                    placeholder="University"
+                  />
+                </div>
+                <div className="field">
+                  <label>Education period</label>
+                  <input
+                    value={defaults.education_period}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, education_period: e.target.value }))}
+                    placeholder="2016 - 2020"
+                  />
+                </div>
+                <div className="field">
+                  <label>Education degree</label>
+                  <input
+                    value={defaults.education_degree}
+                    onChange={(e) => setDefaults((prev) => ({ ...prev, education_degree: e.target.value }))}
+                    placeholder="BSc in Computer Science"
+                  />
+                </div>
+              </div>
+              <div className="helper-text">These values are used when your text does not include them.</div>
+            </div>
+            )}
             <textarea
               placeholder="Paste your resume text here..."
               value={text}

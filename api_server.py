@@ -31,12 +31,12 @@ ALLOWED_TEMPLATES = {p.name for p in TEMPLATES_DIR.glob('*.html')}
 
 def _safe_template_name(template_name: str) -> str:
     if not template_name:
-        return 'resume.html'
+        return 'resume_minimal.html'
     name = template_name.strip()
     if '/' in name or '\\' in name:
-        return 'resume.html'
+        return 'resume_minimal.html'
     if name not in ALLOWED_TEMPLATES:
-        return 'resume.html'
+        return 'resume_minimal.html'
     return name
 
 app.mount('/ui', StaticFiles(directory=str(UI_DIR), html=True), name='ui')
@@ -55,7 +55,8 @@ async def generate(request: Request):
     if not text.strip():
         raise HTTPException(status_code=400, detail='Empty text')
 
-    data = parse_text(text)
+    defaults = (payload or {}).get('defaults') or {}
+    data = parse_text(text, defaults=defaults)
     html = render_html(data, str(TEMPLATES_DIR), template_name=template_name)
 
     pdf_path = BASE_DIR / 'Dmitry.pdf'
@@ -80,13 +81,14 @@ async def preview(request: Request):
     if not text.strip():
         raise HTTPException(status_code=400, detail='Empty text')
 
-    data = parse_text(text)
+    defaults = (payload or {}).get('defaults') or {}
+    data = parse_text(text, defaults=defaults)
     html = render_html(data, str(TEMPLATES_DIR), template_name=template_name)
     return HTMLResponse(content=html)
 
 
 @app.get('/api/preview-template', response_class=HTMLResponse)
-def preview_template(template: str = 'resume.html'):
+def preview_template(template: str = 'resume_minimal.html'):
     template_name = _safe_template_name(template)
     sample_path = BASE_DIR / 'sample_input.json'
     if not sample_path.exists():
@@ -103,6 +105,7 @@ async def coverletter(request: Request):
     if not text.strip():
         raise HTTPException(status_code=400, detail='Empty text')
 
-    data = parse_text(text)
+    defaults = (payload or {}).get('defaults') or {}
+    data = parse_text(text, defaults=defaults)
     letter = '\n\n'.join(data.get('cover letter', []))
     return JSONResponse({'cover_letter': letter})

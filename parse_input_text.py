@@ -387,7 +387,44 @@ def _parse_work_experience(section_lines):
     return jobs
 
 
-def parse_text(text: str):
+def _apply_defaults(data: dict, defaults: dict) -> None:
+    if not isinstance(defaults, dict):
+        return
+
+    for key in ['name', 'address', 'email', 'telegram_address']:
+        value = defaults.get(key)
+        if isinstance(value, str) and value.strip():
+            data[key] = value.strip()
+
+
+def _resolve_education(defaults: dict) -> list:
+    base = {
+        'institution': 'Ханойский университет науки и технологий',
+        'period': '2009 - 2014',
+        'degree': 'Бакалавр: Факультет компьютерных наук, Компьютерные науки'
+    }
+    if not isinstance(defaults, dict):
+        return [base]
+
+    education = defaults.get('education')
+    if not isinstance(education, list) or not education:
+        return [base]
+
+    first = education[0] if isinstance(education[0], dict) else {}
+    updates = {}
+    for key in ['institution', 'period', 'degree']:
+        value = first.get(key) if isinstance(first, dict) else None
+        if isinstance(value, str) and value.strip():
+            updates[key] = value.strip()
+
+    if not updates:
+        return [base]
+
+    merged = {**base, **updates}
+    return [merged]
+
+
+def parse_text(text: str, defaults: dict | None = None):
     lines = _normalize_lines(text)
     sections = _split_sections(lines)
 
@@ -397,6 +434,7 @@ def parse_text(text: str):
         'email': 'cenergiy408@gmail.com',
         'telegram_address': '@ignatov_110104',
     }
+    _apply_defaults(data, defaults or {})
 
     # About sections
     about = []
@@ -421,13 +459,7 @@ def parse_text(text: str):
 
     # Education
     # Use fixed education entry regardless of input text
-    data['education'] = [
-        {
-            'institution': 'Саратовский государственный технический университет',
-            'period': '1997 - 2002',
-            'degree': 'Специалитет: инженер по прикладной информатике'
-        }
-    ]
+    data['education'] = _resolve_education(defaults or {})
 
     # Skills
     skills = []
