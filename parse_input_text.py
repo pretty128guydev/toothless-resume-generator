@@ -400,7 +400,7 @@ def _apply_defaults(data: dict, defaults: dict) -> None:
 def _resolve_education(defaults: dict) -> list:
     base = {
         'institution': 'Ханойский университет науки и технологий',
-        'period': '2009 - 2014',
+        'period': '2009 - 2013',
         'degree': 'Бакалавр: Факультет компьютерных наук, Компьютерные науки'
     }
     if not isinstance(defaults, dict):
