@@ -93,7 +93,7 @@ def preview_template(template: str = 'resume_minimal.html'):
     sample_path = BASE_DIR / 'sample_input.json'
     if not sample_path.exists():
         raise HTTPException(status_code=404, detail='sample_input.json not found')
-    data = json.loads(sample_path.read_text(encoding='utf-8'))
+    data = json.loads(sample_path.read_text(encoding='utf-8-sig'))
     html = render_html(data, str(TEMPLATES_DIR), template_name=template_name)
     return HTMLResponse(content=html)
 
